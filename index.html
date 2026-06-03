@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client Tracker</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Client Tracker</h1>
+            <p class="subtitle">Mortgage Completion Management</p>
+        </header>
+
+        <div class="add-client-section">
+            <input type="text" id="clientNameInput" placeholder="Enter client name..." />
+            <button id="addClientBtn" class="btn-add">Add Client</button>
+        </div>
+
+        <div class="table-wrapper">
+            <table id="clientTable">
+                <thead>
+                    <tr>
+                        <th>Client Name</th>
+                        <th>Mortgage</th>
+                        <th>Protection</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="clientTableBody">
+                </tbody>
+            </table>
+            <div id="emptyState" class="empty-state">
+                <p>No clients added yet. Add a client above to get started.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
