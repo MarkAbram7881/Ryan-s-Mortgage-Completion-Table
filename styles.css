@@ -13,13 +13,13 @@ body {
 }
 
 .container {
-    max-width: 900px;
+    max-width: 1050px;
     margin: 0 auto;
 }
 
 header {
     text-align: center;
-    margin-bottom: 40px;
+    margin-bottom: 50px;
 }
 
 header h1 {
@@ -37,13 +37,29 @@ header h1 {
     letter-spacing: 0.5px;
 }
 
-.add-client-section {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 30px;
+/* Sections */
+.section {
+    margin-bottom: 50px;
 }
 
-.add-client-section input {
+.section-header {
+    margin-bottom: 16px;
+}
+
+.section-header h2 {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #ccd6f6;
+    letter-spacing: 0.5px;
+}
+
+.add-section {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.add-section input {
     flex: 1;
     padding: 14px 18px;
     border: 1px solid #2a3a5c;
@@ -54,13 +70,13 @@ header h1 {
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.add-client-section input:focus {
+.add-section input:focus {
     outline: none;
     border-color: #4a9eff;
     box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.15);
 }
 
-.add-client-section input::placeholder {
+.add-section input::placeholder {
     color: #5a6a8a;
 }
 
@@ -84,6 +100,14 @@ header h1 {
 
 .btn-add:active {
     transform: translateY(0);
+}
+
+.btn-add-task {
+    background: #6c5ce7;
+}
+
+.btn-add-task:hover {
+    background: #5b4bd6;
 }
 
 .table-wrapper {
@@ -133,11 +157,113 @@ tbody td {
     vertical-align: middle;
 }
 
-.client-name {
+.client-name,
+.task-name {
     font-weight: 500;
     color: #ffffff;
 }
 
+/* Deadline styles */
+.deadline-cell {
+    min-width: 100px;
+}
+
+.deadline-input {
+    padding: 8px 12px;
+    border: 1px solid #2a3a5c;
+    border-radius: 6px;
+    background: #0f1d34;
+    color: #e0e0e0;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+}
+
+.deadline-input:focus {
+    outline: none;
+    border-color: #4a9eff;
+}
+
+.deadline-input::-webkit-calendar-picker-indicator {
+    filter: invert(0.7);
+    cursor: pointer;
+}
+
+.days-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.days-badge:hover {
+    transform: scale(1.1);
+}
+
+.days-badge.green {
+    background: rgba(46, 204, 113, 0.15);
+    color: #2ecc71;
+    border: 1px solid rgba(46, 204, 113, 0.3);
+    box-shadow: 0 0 12px rgba(46, 204, 113, 0.1);
+}
+
+.days-badge.amber {
+    background: rgba(243, 156, 18, 0.15);
+    color: #f39c12;
+    border: 1px solid rgba(243, 156, 18, 0.3);
+    box-shadow: 0 0 12px rgba(243, 156, 18, 0.1);
+}
+
+.days-badge.red {
+    background: rgba(231, 76, 60, 0.15);
+    color: #e74c3c;
+    border: 1px solid rgba(231, 76, 60, 0.3);
+    box-shadow: 0 0 12px rgba(231, 76, 60, 0.1);
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { box-shadow: 0 0 12px rgba(231, 76, 60, 0.1); }
+    50% { box-shadow: 0 0 20px rgba(231, 76, 60, 0.3); }
+}
+
+/* Notes */
+.notes-cell {
+    min-width: 180px;
+}
+
+.notes-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #2a3a5c;
+    border-radius: 6px;
+    background: #0f1d34;
+    color: #e0e0e0;
+    font-size: 0.85rem;
+    font-family: inherit;
+    resize: none;
+    min-height: 36px;
+    transition: border-color 0.2s ease;
+}
+
+.notes-input:focus {
+    outline: none;
+    border-color: #6c5ce7;
+    box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.15);
+}
+
+.notes-input::placeholder {
+    color: #5a6a8a;
+}
+
+/* Radio groups */
 .radio-group {
     display: flex;
     gap: 16px;
@@ -219,8 +345,29 @@ tbody td {
     opacity: 0.6;
 }
 
+.btn-complete-task {
+    padding: 10px 20px;
+    background: #2d8a4e;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.btn-complete-task:hover {
+    background: #239a42;
+    transform: translateY(-1px);
+}
+
+.btn-complete-task:active {
+    transform: translateY(0);
+}
+
 .empty-state {
-    padding: 60px 20px;
+    padding: 40px 20px;
     text-align: center;
     color: #5a6a8a;
     font-size: 0.95rem;
@@ -252,7 +399,7 @@ table.hidden {
 }
 
 /* Responsive */
-@media (max-width: 640px) {
+@media (max-width: 768px) {
     body {
         padding: 20px 12px;
     }
@@ -261,7 +408,7 @@ table.hidden {
         font-size: 1.8rem;
     }
 
-    .add-client-section {
+    .add-section {
         flex-direction: column;
     }
 
@@ -273,5 +420,9 @@ table.hidden {
     .radio-group {
         flex-direction: column;
         gap: 8px;
+    }
+
+    .notes-cell {
+        min-width: 120px;
     }
 }

@@ -1,17 +1,97 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    // Client elements
     const clientNameInput = document.getElementById('clientNameInput');
     const addClientBtn = document.getElementById('addClientBtn');
     const clientTableBody = document.getElementById('clientTableBody');
     const clientTable = document.getElementById('clientTable');
-    const emptyState = document.getElementById('emptyState');
+    const clientEmptyState = document.getElementById('clientEmptyState');
 
-    let clients = loadClients();
-    renderAll();
+    // Task elements
+    const taskNameInput = document.getElementById('taskNameInput');
+    const addTaskBtn = document.getElementById('addTaskBtn');
+    const taskTableBody = document.getElementById('taskTableBody');
+    const taskTable = document.getElementById('taskTable');
+    const taskEmptyState = document.getElementById('taskEmptyState');
 
+    // Load saved data from file
+    let data = await window.storage.loadData();
+    let clients = data.clients || [];
+    let tasks = data.tasks || [];
+
+    renderClients();
+    renderTasks();
+
+    // Update countdowns every minute
+    setInterval(() => {
+        renderClients();
+        renderTasks();
+    }, 60000);
+
+    // Client listeners
     addClientBtn.addEventListener('click', addClient);
     clientNameInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') addClient();
     });
+
+    // Task listeners
+    addTaskBtn.addEventListener('click', addTask);
+    taskNameInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') addTask();
+    });
+
+    // ============ SHARED UTILITIES ============
+
+    function save() {
+        window.storage.saveData({ clients, tasks });
+    }
+
+    function getWorkingDaysRemaining(deadlineStr) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const deadline = new Date(deadlineStr);
+        deadline.setHours(0, 0, 0, 0);
+
+        if (deadline <= today) return 0;
+
+        let count = 0;
+        const current = new Date(today);
+        while (current < deadline) {
+            current.setDate(current.getDate() + 1);
+            const day = current.getDay();
+            if (day !== 0 && day !== 6) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    function getDeadlineColor(days) {
+        if (days <= 1) return 'red';
+        if (days <= 3) return 'amber';
+        return 'green';
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function removeRow(id, dataArray, storageKey) {
+        const row = document.querySelector(`[data-id="${id}"]`);
+        if (row) {
+            row.classList.add('row-removing');
+            setTimeout(() => {
+                const index = dataArray.findIndex(item => item.id === id);
+                if (index > -1) dataArray.splice(index, 1);
+                save();
+                if (storageKey === 'clients') renderClients();
+                else renderTasks();
+            }, 300);
+        }
+    }
+
+    // ============ CLIENTS ============
 
     function addClient() {
         const name = clientNameInput.value.trim();
@@ -20,60 +100,31 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const client = {
+        clients.push({
             id: Date.now().toString(),
             name: name,
+            deadline: null,
             mortgage: null,
             protection: null
-        };
+        });
 
-        clients.push(client);
-        saveClients();
-        renderAll();
+        save();
+        renderClients();
         clientNameInput.value = '';
         clientNameInput.focus();
     }
 
-    function removeClient(id) {
-        const row = document.querySelector(`[data-id="${id}"]`);
-        if (row) {
-            row.classList.add('row-removing');
-            setTimeout(() => {
-                clients = clients.filter(c => c.id !== id);
-                saveClients();
-                renderAll();
-            }, 300);
-        }
-    }
-
-    function updateClientField(id, field, value) {
-        const client = clients.find(c => c.id === id);
-        if (client) {
-            client[field] = value;
-            saveClients();
-            updateCompleteButton(id);
-        }
-    }
-
-    function updateCompleteButton(id) {
-        const client = clients.find(c => c.id === id);
-        const btn = document.querySelector(`[data-id="${id}"] .btn-complete`);
-        if (client && btn) {
-            btn.disabled = !(client.mortgage && client.protection);
-        }
-    }
-
-    function renderAll() {
+    function renderClients() {
         clientTableBody.innerHTML = '';
 
         if (clients.length === 0) {
             clientTable.classList.add('hidden');
-            emptyState.classList.add('visible');
+            clientEmptyState.classList.add('visible');
             return;
         }
 
         clientTable.classList.remove('hidden');
-        emptyState.classList.remove('visible');
+        clientEmptyState.classList.remove('visible');
 
         clients.forEach(client => {
             const row = document.createElement('tr');
@@ -81,8 +132,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const isComplete = client.mortgage && client.protection;
 
+            let deadlineHtml = '';
+            if (client.deadline) {
+                const days = getWorkingDaysRemaining(client.deadline);
+                const color = getDeadlineColor(days);
+                deadlineHtml = `<span class="days-badge ${color}" title="Click to change deadline">${days}</span>`;
+            } else {
+                deadlineHtml = `<input type="date" class="deadline-input">`;
+            }
+
             row.innerHTML = `
                 <td class="client-name">${escapeHtml(client.name)}</td>
+                <td class="deadline-cell">${deadlineHtml}</td>
                 <td>
                     <div class="radio-group">
                         <div class="radio-option">
@@ -112,41 +173,148 @@ document.addEventListener('DOMContentLoaded', () => {
                 </td>
             `;
 
+            // Deadline listener
+            if (client.deadline) {
+                row.querySelector('.days-badge').addEventListener('click', () => {
+                    const cell = row.querySelector('.deadline-cell');
+                    cell.innerHTML = `<input type="date" class="deadline-input" value="${client.deadline}">`;
+                    const input = cell.querySelector('.deadline-input');
+                    input.addEventListener('change', (e) => {
+                        client.deadline = e.target.value || null;
+                        save();
+                        renderClients();
+                    });
+                    input.focus();
+                });
+            } else {
+                row.querySelector('.deadline-input').addEventListener('change', (e) => {
+                    client.deadline = e.target.value || null;
+                    save();
+                    renderClients();
+                });
+            }
+
             // Mortgage radio listeners
             row.querySelectorAll(`input[name="mortgage-${client.id}"]`).forEach(radio => {
                 radio.addEventListener('change', (e) => {
-                    updateClientField(client.id, 'mortgage', e.target.value);
+                    client.mortgage = e.target.value;
+                    save();
+                    const btn = row.querySelector('.btn-complete');
+                    btn.disabled = !(client.mortgage && client.protection);
                 });
             });
 
             // Protection radio listeners
             row.querySelectorAll(`input[name="protection-${client.id}"]`).forEach(radio => {
                 radio.addEventListener('change', (e) => {
-                    updateClientField(client.id, 'protection', e.target.value);
+                    client.protection = e.target.value;
+                    save();
+                    const btn = row.querySelector('.btn-complete');
+                    btn.disabled = !(client.mortgage && client.protection);
                 });
             });
 
-            // Complete button listener
+            // Complete button
             row.querySelector('.btn-complete').addEventListener('click', () => {
-                removeClient(client.id);
+                removeRow(client.id, clients, 'clients');
             });
 
             clientTableBody.appendChild(row);
         });
     }
 
-    function saveClients() {
-        localStorage.setItem('clientTracker', JSON.stringify(clients));
+    // ============ TASKS ============
+
+    function addTask() {
+        const name = taskNameInput.value.trim();
+        if (!name) {
+            taskNameInput.focus();
+            return;
+        }
+
+        tasks.push({
+            id: Date.now().toString(),
+            name: name,
+            deadline: null,
+            notes: ''
+        });
+
+        save();
+        renderTasks();
+        taskNameInput.value = '';
+        taskNameInput.focus();
     }
 
-    function loadClients() {
-        const data = localStorage.getItem('clientTracker');
-        return data ? JSON.parse(data) : [];
-    }
+    function renderTasks() {
+        taskTableBody.innerHTML = '';
 
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+        if (tasks.length === 0) {
+            taskTable.classList.add('hidden');
+            taskEmptyState.classList.add('visible');
+            return;
+        }
+
+        taskTable.classList.remove('hidden');
+        taskEmptyState.classList.remove('visible');
+
+        tasks.forEach(task => {
+            const row = document.createElement('tr');
+            row.setAttribute('data-id', task.id);
+
+            let deadlineHtml = '';
+            if (task.deadline) {
+                const days = getWorkingDaysRemaining(task.deadline);
+                const color = getDeadlineColor(days);
+                deadlineHtml = `<span class="days-badge ${color}" title="Click to change deadline">${days}</span>`;
+            } else {
+                deadlineHtml = `<input type="date" class="deadline-input">`;
+            }
+
+            row.innerHTML = `
+                <td class="task-name">${escapeHtml(task.name)}</td>
+                <td class="deadline-cell">${deadlineHtml}</td>
+                <td class="notes-cell">
+                    <textarea class="notes-input" placeholder="Add notes..." rows="1">${escapeHtml(task.notes)}</textarea>
+                </td>
+                <td>
+                    <button class="btn-complete-task">Complete</button>
+                </td>
+            `;
+
+            // Deadline listener
+            if (task.deadline) {
+                row.querySelector('.days-badge').addEventListener('click', () => {
+                    const cell = row.querySelector('.deadline-cell');
+                    cell.innerHTML = `<input type="date" class="deadline-input" value="${task.deadline}">`;
+                    const input = cell.querySelector('.deadline-input');
+                    input.addEventListener('change', (e) => {
+                        task.deadline = e.target.value || null;
+                        save();
+                        renderTasks();
+                    });
+                    input.focus();
+                });
+            } else {
+                row.querySelector('.deadline-input').addEventListener('change', (e) => {
+                    task.deadline = e.target.value || null;
+                    save();
+                    renderTasks();
+                });
+            }
+
+            // Notes listener
+            const notesInput = row.querySelector('.notes-input');
+            notesInput.addEventListener('input', (e) => {
+                task.notes = e.target.value;
+                save();
+            });
+
+            // Complete button
+            row.querySelector('.btn-complete-task').addEventListener('click', () => {
+                removeRow(task.id, tasks, 'tasks');
+            });
+
+            taskTableBody.appendChild(row);
+        });
     }
 });

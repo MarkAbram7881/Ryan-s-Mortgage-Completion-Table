@@ -3,38 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Client Tracker</title>
+    <title>Ryan's Tracker</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Client Tracker</h1>
-            <p class="subtitle">Mortgage Completion Management</p>
+            <h1>Ryan's Tracker</h1>
+            <p class="subtitle">Client and Task Management</p>
         </header>
 
-        <div class="add-client-section">
-            <input type="text" id="clientNameInput" placeholder="Enter client name..." />
-            <button id="addClientBtn" class="btn-add">Add Client</button>
-        </div>
-
-        <div class="table-wrapper">
-            <table id="clientTable">
-                <thead>
-                    <tr>
-                        <th>Client Name</th>
-                        <th>Mortgage</th>
-                        <th>Protection</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody id="clientTableBody">
-                </tbody>
-            </table>
-            <div id="emptyState" class="empty-state">
-                <p>No clients added yet. Add a client above to get started.</p>
+        <!-- Clients Section -->
+        <section class="section">
+            <div class="section-header">
+                <h2>Clients</h2>
             </div>
-        </div>
+            <div class="add-section">
+                <input type="text" id="clientNameInput" placeholder="Enter client name..." />
+                <button id="addClientBtn" class="btn-add">Add Client</button>
+            </div>
+            <div class="table-wrapper">
+                <table id="clientTable">
+                    <thead>
+                        <tr>
+                            <th>Client Name</th>
+                            <th>Deadline</th>
+                            <th>Mortgage</th>
+                            <th>Protection</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="clientTableBody">
+                    </tbody>
+                </table>
+                <div id="clientEmptyState" class="empty-state">
+                    <p>No clients added yet.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tasks Section -->
+        <section class="section">
+            <div class="section-header">
+                <h2>Tasks</h2>
+            </div>
+            <div class="add-section">
+                <input type="text" id="taskNameInput" placeholder="Enter task name..." />
+                <button id="addTaskBtn" class="btn-add btn-add-task">Add Task</button>
+            </div>
+            <div class="table-wrapper">
+                <table id="taskTable">
+                    <thead>
+                        <tr>
+                            <th>Task Name</th>
+                            <th>Deadline</th>
+                            <th>Notes</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="taskTableBody">
+                    </tbody>
+                </table>
+                <div id="taskEmptyState" class="empty-state">
+                    <p>No tasks added yet.</p>
+                </div>
+            </div>
+        </section>
     </div>
 
     <script src="app.js"></script>
