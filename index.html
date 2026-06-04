@@ -13,6 +13,14 @@
             <p class="subtitle">Client and Task Management</p>
         </header>
 
+        <!-- Restore banner (hidden by default) -->
+        <div id="restoreBanner" class="restore-banner hidden">
+            <p>No saved data found. Restore from a backup?</p>
+            <button id="restoreBtn" class="btn-restore">Restore Backup</button>
+            <button id="dismissRestore" class="btn-dismiss">Dismiss</button>
+            <input type="file" id="restoreFileInput" accept=".json" style="display:none;">
+        </div>
+
         <!-- Clients Section -->
         <section class="section">
             <div class="section-header">
@@ -69,6 +77,13 @@
                 </div>
             </div>
         </section>
+
+        <!-- Backup Section -->
+        <div class="backup-section">
+            <button id="backupBtn" class="btn-backup">Download Backup</button>
+            <button id="restoreBtn2" class="btn-backup btn-backup-restore">Restore from Backup</button>
+            <input type="file" id="restoreFileInput" accept=".json" style="display:none;">
+        </div>
     </div>
 
     <script src="app.js"></script>

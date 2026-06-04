@@ -13,9 +13,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const taskTable = document.getElementById('taskTable');
     const taskEmptyState = document.getElementById('taskEmptyState');
 
+    // Backup/Restore elements
+    const restoreBanner = document.getElementById('restoreBanner');
+    const restoreBannerBtn = document.getElementById('restoreBtn');
+    const dismissRestore = document.getElementById('dismissRestore');
+    const backupBtn = document.getElementById('backupBtn');
+    const restoreBtn2 = document.getElementById('restoreBtn2');
+    const restoreFileInput = document.getElementById('restoreFileInput');
+
     // Load saved data
     let clients = loadData('clientTracker');
     let tasks = loadData('taskTracker');
+
+    // Show restore banner if data is empty and user previously had data
+    if (clients.length === 0 && tasks.length === 0 && localStorage.getItem('hadData') === 'true') {
+        restoreBanner.classList.remove('hidden');
+    }
 
     renderClients();
     renderTasks();
@@ -38,6 +51,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === 'Enter') addTask();
     });
 
+    // Backup/Restore listeners
+    backupBtn.addEventListener('click', downloadBackup);
+    restoreBtn2.addEventListener('click', () => restoreFileInput.click());
+    restoreBannerBtn.addEventListener('click', () => restoreFileInput.click());
+    dismissRestore.addEventListener('click', () => restoreBanner.classList.add('hidden'));
+    restoreFileInput.addEventListener('change', restoreFromFile);
+
     // ============ SHARED UTILITIES ============
 
     function loadData(key) {
@@ -47,6 +67,49 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function saveData(key, data) {
         localStorage.setItem(key, JSON.stringify(data));
+        localStorage.setItem('hadData', 'true');
+    }
+
+    function downloadBackup() {
+        const backup = {
+            clients: clients,
+            tasks: tasks,
+            exportDate: new Date().toISOString()
+        };
+        const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'ryans-tracker-backup.json';
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    function restoreFromFile(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const backup = JSON.parse(event.target.result);
+                if (backup.clients) {
+                    clients = backup.clients;
+                    saveData('clientTracker', clients);
+                }
+                if (backup.tasks) {
+                    tasks = backup.tasks;
+                    saveData('taskTracker', tasks);
+                }
+                restoreBanner.classList.add('hidden');
+                renderClients();
+                renderTasks();
+            } catch (err) {
+                alert('Could not read backup file. Make sure it is the correct file.');
+            }
+        };
+        reader.readAsText(file);
+        e.target.value = '';
     }
 
     function getWorkingDaysRemaining(deadlineStr) {
