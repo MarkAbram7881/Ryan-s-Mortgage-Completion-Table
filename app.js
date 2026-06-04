@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', () => {
     // Client elements
     const clientNameInput = document.getElementById('clientNameInput');
     const addClientBtn = document.getElementById('addClientBtn');
@@ -13,10 +13,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const taskTable = document.getElementById('taskTable');
     const taskEmptyState = document.getElementById('taskEmptyState');
 
-    // Load saved data from file
-    let data = await window.storage.loadData();
-    let clients = data.clients || [];
-    let tasks = data.tasks || [];
+    // Load saved data
+    let clients = loadData('clientTracker');
+    let tasks = loadData('taskTracker');
 
     renderClients();
     renderTasks();
@@ -41,8 +40,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // ============ SHARED UTILITIES ============
 
-    function save() {
-        window.storage.saveData({ clients, tasks });
+    function loadData(key) {
+        const data = localStorage.getItem(key);
+        return data ? JSON.parse(data) : [];
+    }
+
+    function saveData(key, data) {
+        localStorage.setItem(key, JSON.stringify(data));
     }
 
     function getWorkingDaysRemaining(deadlineStr) {
@@ -84,8 +88,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             setTimeout(() => {
                 const index = dataArray.findIndex(item => item.id === id);
                 if (index > -1) dataArray.splice(index, 1);
-                save();
-                if (storageKey === 'clients') renderClients();
+                saveData(storageKey, dataArray);
+                if (storageKey === 'clientTracker') renderClients();
                 else renderTasks();
             }, 300);
         }
@@ -108,7 +112,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             protection: null
         });
 
-        save();
+        saveData('clientTracker', clients);
         renderClients();
         clientNameInput.value = '';
         clientNameInput.focus();
@@ -181,7 +185,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const input = cell.querySelector('.deadline-input');
                     input.addEventListener('change', (e) => {
                         client.deadline = e.target.value || null;
-                        save();
+                        saveData('clientTracker', clients);
                         renderClients();
                     });
                     input.focus();
@@ -189,7 +193,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             } else {
                 row.querySelector('.deadline-input').addEventListener('change', (e) => {
                     client.deadline = e.target.value || null;
-                    save();
+                    saveData('clientTracker', clients);
                     renderClients();
                 });
             }
@@ -198,7 +202,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             row.querySelectorAll(`input[name="mortgage-${client.id}"]`).forEach(radio => {
                 radio.addEventListener('change', (e) => {
                     client.mortgage = e.target.value;
-                    save();
+                    saveData('clientTracker', clients);
                     const btn = row.querySelector('.btn-complete');
                     btn.disabled = !(client.mortgage && client.protection);
                 });
@@ -208,7 +212,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             row.querySelectorAll(`input[name="protection-${client.id}"]`).forEach(radio => {
                 radio.addEventListener('change', (e) => {
                     client.protection = e.target.value;
-                    save();
+                    saveData('clientTracker', clients);
                     const btn = row.querySelector('.btn-complete');
                     btn.disabled = !(client.mortgage && client.protection);
                 });
@@ -216,7 +220,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // Complete button
             row.querySelector('.btn-complete').addEventListener('click', () => {
-                removeRow(client.id, clients, 'clients');
+                removeRow(client.id, clients, 'clientTracker');
             });
 
             clientTableBody.appendChild(row);
@@ -239,7 +243,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             notes: ''
         });
 
-        save();
+        saveData('taskTracker', tasks);
         renderTasks();
         taskNameInput.value = '';
         taskNameInput.focus();
@@ -289,7 +293,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const input = cell.querySelector('.deadline-input');
                     input.addEventListener('change', (e) => {
                         task.deadline = e.target.value || null;
-                        save();
+                        saveData('taskTracker', tasks);
                         renderTasks();
                     });
                     input.focus();
@@ -297,7 +301,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             } else {
                 row.querySelector('.deadline-input').addEventListener('change', (e) => {
                     task.deadline = e.target.value || null;
-                    save();
+                    saveData('taskTracker', tasks);
                     renderTasks();
                 });
             }
@@ -306,12 +310,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             const notesInput = row.querySelector('.notes-input');
             notesInput.addEventListener('input', (e) => {
                 task.notes = e.target.value;
-                save();
+                saveData('taskTracker', tasks);
             });
 
             // Complete button
             row.querySelector('.btn-complete-task').addEventListener('click', () => {
-                removeRow(task.id, tasks, 'tasks');
+                removeRow(task.id, tasks, 'taskTracker');
             });
 
             taskTableBody.appendChild(row);
